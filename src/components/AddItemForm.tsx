@@ -19,6 +19,19 @@ interface AddItemFormProps {
   onSubmit: (title: string, character: Character) => void
 }
 
+function CharacterOption({ character }: { character: Character }) {
+  return (
+    <>
+      <img
+        src={character.image}
+        alt=""
+        className="size-5 rounded-full object-cover"
+      />
+      <span>{character.name}</span>
+    </>
+  )
+}
+
 export function AddItemForm({
   characters,
   loading,
@@ -71,21 +84,22 @@ export function AddItemForm({
           required
         >
           <SelectTrigger id="character" className="w-full">
-            <SelectValue
-              placeholder={
-                loading ? 'Loading characters...' : 'Select a character'
-              }
-            />
+            {selectedCharacter ? (
+              <span className="flex flex-1 items-center gap-2">
+                <CharacterOption character={selectedCharacter} />
+              </span>
+            ) : (
+              <SelectValue
+                placeholder={
+                  loading ? 'Loading characters...' : 'Select a character'
+                }
+              />
+            )}
           </SelectTrigger>
           <SelectContent>
             {characters.map((character) => (
               <SelectItem key={character.id} value={character.id}>
-                <img
-                  src={character.image}
-                  alt=""
-                  className="size-5 rounded-full object-cover"
-                />
-                <span>{character.name}</span>
+                <CharacterOption character={character} />
               </SelectItem>
             ))}
           </SelectContent>
