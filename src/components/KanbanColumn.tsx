@@ -29,7 +29,7 @@ const COLUMN_STYLES: Record<
   },
 }
 
-interface KanbanColumnProps {
+type KanbanColumnProps = {
   columnId: ColumnId
   items: KanbanItem[]
   recentlyCompletedId: string | null

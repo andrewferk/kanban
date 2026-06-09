@@ -7,42 +7,34 @@ import {
   type ColumnId,
   type KanbanItem,
 } from '@/lib/types'
+import { arrayMove } from '@/lib/utils'
 
-export interface MoveItemParams {
+export type MoveItemParams = {
   activeId: string
   overId: string
 }
 
-interface BoardState {
-  items: Record<string, KanbanItem>
-  columnOrder: Record<ColumnId, string[]>
+type BoardState = {
+  items: Record<KanbanItem['id'], KanbanItem>
+  columnOrder: ColumnOrder
 }
 
-function createEmptyColumnOrder(): Record<ColumnId, string[]> {
-  return {
-    todo: [],
-    doing: [],
-    done: [],
-  }
-}
+type ColumnOrder = Record<ColumnId, KanbanItem['id'][]>
 
-function createInitialState(): BoardState {
+function createEmptyBoard(): BoardState {
   return {
     items: {},
-    columnOrder: createEmptyColumnOrder(),
+    columnOrder: {
+      todo: [],
+      doing: [],
+      done: [],
+    },
   }
-}
-
-function arrayMove<T>(array: T[], from: number, to: number): T[] {
-  const result = [...array]
-  const [removed] = result.splice(from, 1)
-  result.splice(to, 0, removed)
-  return result
 }
 
 function findColumnForItem(
-  columnOrder: Record<ColumnId, string[]>,
-  itemId: string,
+  columnOrder: ColumnOrder,
+  itemId: KanbanItem['id'],
 ): ColumnId | null {
   for (const columnId of COLUMN_IDS) {
     if (columnOrder[columnId].includes(itemId)) {
@@ -53,7 +45,7 @@ function findColumnForItem(
 }
 
 export function useKanbanBoard() {
-  const [state, setState] = useState<BoardState>(createInitialState)
+  const [state, setState] = useState<BoardState>(createEmptyBoard)
 
   const addItem = useCallback((title: string, character: Character) => {
     const id = crypto.randomUUID()

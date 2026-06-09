@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import type { Character } from '@/lib/types'
 
-interface AddItemFormProps {
+type AddItemFormProps = {
   characters: Character[]
   loading: boolean
   error: string | null

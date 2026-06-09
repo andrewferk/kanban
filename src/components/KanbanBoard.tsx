@@ -25,7 +25,7 @@ import {
 
 const DONE_ANIMATION_MS = 700
 
-interface KanbanBoardProps {
+type KanbanBoardProps = {
   getColumnItems: (columnId: ColumnId) => KanbanItem[]
   moveItem: (params: MoveItemParams) => void
 }

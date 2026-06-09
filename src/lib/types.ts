@@ -1,6 +1,4 @@
-export type ColumnId = 'todo' | 'doing' | 'done'
-
-export interface Character {
+export type Character = {
   id: string
   name: string
   image: string
@@ -8,14 +6,15 @@ export interface Character {
   status: string
 }
 
-export interface KanbanItem {
+export type KanbanItem = {
   id: string
   title: string
   character: Character
   columnId: ColumnId
 }
 
-export const COLUMN_IDS: ColumnId[] = ['todo', 'doing', 'done']
+export const COLUMN_IDS = ['todo', 'doing', 'done'] as const
+export type ColumnId = (typeof COLUMN_IDS)[number]
 
 export const COLUMN_LABELS: Record<ColumnId, string> = {
   todo: 'To Do',
@@ -24,5 +23,5 @@ export const COLUMN_LABELS: Record<ColumnId, string> = {
 }
 
 export function isColumnId(value: string): value is ColumnId {
-  return (COLUMN_IDS as string[]).includes(value)
+  return COLUMN_IDS.includes(value as ColumnId)
 }

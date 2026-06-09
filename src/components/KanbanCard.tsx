@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { KanbanItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-interface KanbanCardContentProps {
+type KanbanCardContentProps = {
   item: KanbanItem
   dragHandleProps?: HTMLAttributes<HTMLButtonElement>
   className?: string
@@ -66,7 +66,7 @@ export function KanbanCardContent({
   )
 }
 
-interface KanbanCardProps {
+type KanbanCardProps = {
   item: KanbanItem
   isJustCompleted?: boolean
 }

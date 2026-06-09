@@ -16,7 +16,7 @@ const GET_CHARACTERS_QUERY = `
   }
 `
 
-interface CharacterResult {
+type CharacterResult = {
   id: string | null
   name: string | null
   image: string | null
@@ -24,7 +24,7 @@ interface CharacterResult {
   status: string | null
 }
 
-interface CharactersQueryResponse {
+type CharactersQueryResponse = {
   data?: {
     characters?: {
       results?: (CharacterResult | null)[] | null
