@@ -12,15 +12,27 @@ interface KanbanCardContentProps {
   item: KanbanItem
   dragHandleProps?: HTMLAttributes<HTMLButtonElement>
   className?: string
+  isJustCompleted?: boolean
 }
 
 export function KanbanCardContent({
   item,
   dragHandleProps,
   className,
+  isJustCompleted = false,
 }: KanbanCardContentProps) {
+  const isDone = item.columnId === 'done'
+
   return (
-    <Card size="sm" className={cn('shadow-sm', className)}>
+    <Card
+      size="sm"
+      className={cn(
+        'shadow-sm transition-shadow',
+        isDone && 'ring-1 ring-emerald-500/30',
+        isJustCompleted && 'animate-done-pop',
+        className,
+      )}
+    >
       <CardHeader className="flex-row items-center gap-2">
         {dragHandleProps ? (
           <button
@@ -56,9 +68,10 @@ export function KanbanCardContent({
 
 interface KanbanCardProps {
   item: KanbanItem
+  isJustCompleted?: boolean
 }
 
-export function KanbanCard({ item }: KanbanCardProps) {
+export function KanbanCard({ item, isJustCompleted = false }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -82,6 +95,7 @@ export function KanbanCard({ item }: KanbanCardProps) {
       <KanbanCardContent
         item={item}
         dragHandleProps={{ ...attributes, ...listeners }}
+        isJustCompleted={isJustCompleted}
         className={isDragging ? 'shadow-md' : undefined}
       />
     </div>

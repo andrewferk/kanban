@@ -20,9 +20,14 @@ import { COLUMN_IDS, type ColumnId, type KanbanItem } from '@/lib/types'
 interface KanbanBoardProps {
   getColumnItems: (columnId: ColumnId) => KanbanItem[]
   moveItem: (params: MoveItemParams) => void
+  recentlyCompletedId: string | null
 }
 
-export function KanbanBoard({ getColumnItems, moveItem }: KanbanBoardProps) {
+export function KanbanBoard({
+  getColumnItems,
+  moveItem,
+  recentlyCompletedId,
+}: KanbanBoardProps) {
   const [activeItem, setActiveItem] = useState<KanbanItem | null>(null)
 
   const sensors = useSensors(
@@ -67,12 +72,13 @@ export function KanbanBoard({ getColumnItems, moveItem }: KanbanBoardProps) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="grid flex-1 gap-4 md:grid-cols-3">
+      <div className="grid min-h-[28rem] flex-1 gap-4 lg:grid-cols-3">
         {COLUMN_IDS.map((columnId) => (
           <KanbanColumn
             key={columnId}
             columnId={columnId}
             items={getColumnItems(columnId)}
+            recentlyCompletedId={recentlyCompletedId}
           />
         ))}
       </div>

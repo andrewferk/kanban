@@ -11,9 +11,6 @@ export function useCharacters() {
   useEffect(() => {
     let cancelled = false
 
-    setLoading(true)
-    setError(null)
-
     fetchCharacters()
       .then((data) => {
         if (!cancelled) {

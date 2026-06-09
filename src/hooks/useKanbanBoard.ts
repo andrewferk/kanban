@@ -53,8 +53,13 @@ function findColumnForItem(
   return null
 }
 
+const DONE_ANIMATION_MS = 700
+
 export function useKanbanBoard() {
   const [state, setState] = useState<BoardState>(createInitialState)
+  const [recentlyCompletedId, setRecentlyCompletedId] = useState<string | null>(
+    null,
+  )
 
   const addItem = useCallback((title: string, character: Character) => {
     const id = crypto.randomUUID()
@@ -79,6 +84,8 @@ export function useKanbanBoard() {
       return
     }
 
+    let completedId: string | null = null
+
     setState((prev) => {
       const activeColumn = findColumnForItem(prev.columnOrder, activeId)
       if (!activeColumn) {
@@ -93,7 +100,6 @@ export function useKanbanBoard() {
       }
 
       const previousColumn = prev.items[activeId]?.columnId
-      let shouldCelebrate = false
 
       if (activeColumn === overColumn) {
         const columnIds = [...prev.columnOrder[activeColumn]]
@@ -128,7 +134,7 @@ export function useKanbanBoard() {
       )
 
       if (overColumn === 'done' && previousColumn !== 'done') {
-        shouldCelebrate = true
+        completedId = activeId
       }
 
       const nextState: BoardState = {
@@ -146,12 +152,14 @@ export function useKanbanBoard() {
         },
       }
 
-      if (shouldCelebrate) {
-        celebrateDone()
-      }
-
       return nextState
     })
+
+    if (completedId) {
+      celebrateDone()
+      setRecentlyCompletedId(completedId)
+      window.setTimeout(() => setRecentlyCompletedId(null), DONE_ANIMATION_MS)
+    }
   }, [])
 
   const getColumnItems = useCallback(
@@ -167,5 +175,6 @@ export function useKanbanBoard() {
     addItem,
     moveItem,
     getColumnItems,
+    recentlyCompletedId,
   }
 }
