@@ -15,20 +15,29 @@ import { useState } from 'react'
 import { KanbanCardContent } from '@/components/KanbanCard'
 import { KanbanColumn } from '@/components/KanbanColumn'
 import type { MoveItemParams } from '@/hooks/useKanbanBoard'
-import { COLUMN_IDS, type ColumnId, type KanbanItem } from '@/lib/types'
+import { celebrateDone } from '@/lib/confetti'
+import {
+  COLUMN_IDS,
+  isColumnId,
+  type ColumnId,
+  type KanbanItem,
+} from '@/lib/types'
+
+const DONE_ANIMATION_MS = 700
 
 interface KanbanBoardProps {
   getColumnItems: (columnId: ColumnId) => KanbanItem[]
   moveItem: (params: MoveItemParams) => void
-  recentlyCompletedId: string | null
 }
 
 export function KanbanBoard({
   getColumnItems,
   moveItem,
-  recentlyCompletedId,
 }: KanbanBoardProps) {
   const [activeItem, setActiveItem] = useState<KanbanItem | null>(null)
+  const [recentlyCompletedId, setRecentlyCompletedId] = useState<string | null>(
+    null,
+  )
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -39,6 +48,18 @@ export function KanbanBoard({
     }),
   )
 
+  const resolveDestColumn = (overId: string): ColumnId | null => {
+    if (isColumnId(overId)) {
+      return overId
+    }
+    for (const columnId of COLUMN_IDS) {
+      if (getColumnItems(columnId).some((item) => item.id === overId)) {
+        return columnId
+      }
+    }
+    return null
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     const item = COLUMN_IDS.flatMap((columnId) => getColumnItems(columnId)).find(
       (candidate) => candidate.id === event.active.id,
@@ -48,16 +69,24 @@ export function KanbanBoard({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
+    const dragged = activeItem
     setActiveItem(null)
 
-    if (!over) {
+    if (!over || !dragged) {
       return
     }
 
-    moveItem({
-      activeId: String(active.id),
-      overId: String(over.id),
-    })
+    const activeId = String(active.id)
+    const overId = String(over.id)
+    const destColumn = resolveDestColumn(overId)
+
+    moveItem({ activeId, overId })
+
+    if (dragged.columnId !== 'done' && destColumn === 'done') {
+      celebrateDone()
+      setRecentlyCompletedId(activeId)
+      window.setTimeout(() => setRecentlyCompletedId(null), DONE_ANIMATION_MS)
+    }
   }
 
   const handleDragCancel = () => {

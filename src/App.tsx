@@ -5,8 +5,7 @@ import { useKanbanBoard } from '@/hooks/useKanbanBoard'
 
 function App() {
   const { characters, loading, error } = useCharacters()
-  const { addItem, getColumnItems, moveItem, recentlyCompletedId } =
-    useKanbanBoard()
+  const { addItem, getColumnItems, moveItem } = useKanbanBoard()
 
   return (
     <div className="min-h-svh bg-[radial-gradient(ellipse_at_top,_oklch(0.97_0.03_145)_0%,_var(--background)_50%)]">
@@ -32,7 +31,6 @@ function App() {
           <KanbanBoard
             getColumnItems={getColumnItems}
             moveItem={moveItem}
-            recentlyCompletedId={recentlyCompletedId}
           />
         </main>
       </div>
