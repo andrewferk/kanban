@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# Kanban Board
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A frontend-only Kanban board built with React and TypeScript. Tasks are tied to [Rick and Morty](https://rickandmortyapi.com/) characters fetched from the GraphQL API, with three columns: **To Do**, **Doing**, and **Done**.
 
-Currently, two official plugins are available:
+## Planned features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Fetch characters from `https://rickandmortyapi.com/graphql`
+- Create items via a form (title + required character)
+- Drag items between columns and reorder within a column
+- Celebrate when an item moves to Done (confetti / animation)
+- In-memory board state (no persistence)
 
-## React Compiler
+## Current status
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The project scaffold is complete. The app runs, but Kanban functionality is not implemented yet.
 
-## Expanding the ESLint configuration
+**Done so far:**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Vite + React 19 + TypeScript
+- [mise](https://mise.jdx.dev/) for Node version management (see [`.mise.toml`](.mise.toml))
+- Tailwind CSS v4 via `@tailwindcss/vite`
+- shadcn/ui base setup (`components.json`, theme tokens in `src/index.css`, `cn()` helper in `src/lib/utils.ts`)
+- `@/*` path alias pointing to `src/*`
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Not installed yet** (added in later todos as needed):
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- shadcn/ui components (`button`, `card`, `input`, etc.)
+- `@dnd-kit/*` for drag and drop
+- `canvas-confetti` for the Done celebration
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Prerequisites
+
+- Node.js 24+ (managed via [mise](https://mise.jdx.dev/) — see [`.mise.toml`](.mise.toml))
+
+## Getting started
+
+Install dependencies:
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Start the dev server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Open the URL Vite prints (usually `http://localhost:5173`).
+
+## Useful commands
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start dev server with HMR |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run ESLint |
+
+## Project structure
+
+```
+src/
+├── lib/utils.ts    # shadcn cn() helper
+├── App.tsx         # Root component (Vite starter for now)
+├── main.tsx        # App entry point
+└── index.css       # Tailwind + shadcn theme
+```
+
+Kanban components, hooks, and GraphQL client code will be added under `src/` in upcoming work.
