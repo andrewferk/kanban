@@ -22,3 +22,7 @@ export const COLUMN_LABELS: Record<ColumnId, string> = {
   doing: 'Doing',
   done: 'Done',
 }
+
+export function isColumnId(value: string): value is ColumnId {
+  return (COLUMN_IDS as string[]).includes(value)
+}
