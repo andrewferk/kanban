@@ -5,8 +5,10 @@ A frontend-only Kanban board built with React and TypeScript. Tasks are tied to 
 ## Features
 
 - Fetch characters from `https://rickandmortyapi.com/graphql` (native `fetch`, pages 1–2)
-- Create items via a form — each task requires a title and assigned character
-- Drag items between columns and reorder within a column (`@dnd-kit`)
+- Create items via a form — each task requires a title and assigned character (with avatar preview in the select)
+- Drag items between columns and reorder within a column (`@dnd-kit`), including keyboard support
+- Drag overlay, per-column accent colors, and item counts in column headers
+- Character species and status badges on each card
 - Confetti and a card pop animation when an item moves to Done
 - In-memory board state (resets on page refresh)
 
@@ -14,8 +16,10 @@ A frontend-only Kanban board built with React and TypeScript. Tasks are tied to 
 
 - Vite + React 19 + TypeScript
 - Tailwind CSS v4 + shadcn/ui
+- Geist Variable font (`@fontsource-variable/geist`)
 - `@dnd-kit` for drag and drop
 - `canvas-confetti` for celebrations
+- `lucide-react` icons, `tw-animate-css` for the Done pop animation
 - [mise](https://mise.jdx.dev/) for Node version management (see [`.mise.toml`](.mise.toml))
 
 ## Prerequisites
@@ -52,25 +56,33 @@ Open the URL Vite prints (usually `http://localhost:5173`).
 ```
 src/
 ├── components/
-│   ├── AddItemForm.tsx    # Task creation form
-│   ├── KanbanBoard.tsx    # DnD context and board layout
-│   ├── KanbanColumn.tsx   # Droppable column
-│   ├── KanbanCard.tsx     # Sortable task card
+│   ├── AddItemForm.tsx    # Task creation form with character select
+│   ├── KanbanBoard.tsx    # DnD context, Done celebrations, board layout
+│   ├── KanbanColumn.tsx   # Droppable column with per-column styling
+│   ├── KanbanCard.tsx     # Sortable task card (KanbanCardContent for overlay)
 │   └── ui/                # shadcn/ui primitives
 ├── hooks/
 │   ├── useCharacters.ts   # GraphQL character loading
-│   └── useKanbanBoard.ts  # Board state and move logic
+│   └── useKanbanBoard.ts  # Board state, column definitions, and move logic
 ├── lib/
 │   ├── graphql.ts         # fetch-based GraphQL client
+│   ├── kanbanBoard.ts     # Board view-model helpers (deriveBoard, etc.)
 │   ├── types.ts           # Shared TypeScript types
+│   ├── utils.ts           # cn() and arrayMove utilities
 │   └── confetti.ts        # Done celebration helper
 ├── App.tsx
 └── main.tsx
 ```
 
+## Architecture
+
+Board state lives in `useKanbanBoard` as a normalized structure: an `items` map keyed by ID and a `columnOrder` map of column ID → item IDs. Column definitions (`todo`, `doing`, `done`) are declared in the hook with optional `kind` markers (`default` for the initial column, `done` for the celebration column).
+
+`deriveBoard` in `lib/kanbanBoard.ts` projects that state into a `BoardColumn[]` view model for the UI. `KanbanBoard` owns drag-and-drop wiring and Done celebrations (confetti + completion animation); the hook only updates state via `addItem` and `moveItem`.
+
 ## How to use
 
 1. Enter a task title and pick a Rick and Morty character.
 2. Click **Add task** — the card appears in **To Do**.
-3. Drag cards between columns or reorder within a column.
+3. Drag cards between columns or reorder within a column (keyboard accessible via the drag handle).
 4. Drop a card into **Done** to trigger confetti and a brief completion animation.
