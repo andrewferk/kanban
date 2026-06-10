@@ -6,7 +6,7 @@ export type Character = {
   status: string
 }
 
-export type ColumnKind = 'done'
+export type ColumnKind = 'default' | 'done'
 
 export type ColumnDef = {
   id: string

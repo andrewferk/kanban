@@ -8,16 +8,7 @@ import { KanbanCard } from '@/components/KanbanCard'
 import type { BoardColumn } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-const DEFAULT_COLUMN_STYLE = {
-  accent: 'bg-slate-500',
-  dropzone: 'border-border bg-muted/30',
-  dropzoneOver: 'border-slate-400/50 bg-slate-500/5',
-}
-
-const COLUMN_STYLES: Record<
-  string,
-  { accent: string; dropzone: string; dropzoneOver: string }
-> = {
+const COLUMN_STYLES = {
   todo: {
     accent: 'bg-slate-500',
     dropzone: 'border-border bg-muted/30',
@@ -33,6 +24,11 @@ const COLUMN_STYLES: Record<
     dropzone: 'border-emerald-500/20 bg-emerald-500/5',
     dropzoneOver: 'border-emerald-500/50 bg-emerald-500/10',
   },
+  __default__: {
+    accent: 'bg-slate-500',
+    dropzone: 'border-border bg-muted/30',
+    dropzoneOver: 'border-slate-400/50 bg-slate-500/5',
+  },
 }
 
 type KanbanColumnProps = {
@@ -46,7 +42,7 @@ export function KanbanColumn({
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id })
   const itemIds = column.items.map((item) => item.id)
-  const styles = COLUMN_STYLES[column.id] ?? DEFAULT_COLUMN_STYLE
+  const styles = COLUMN_STYLES[column.id] ?? COLUMN_STYLES.__default__
   const isDoneColumn = column.kind === 'done'
 
   return (

@@ -9,12 +9,12 @@ import {
 import { arrayMove } from '@/lib/utils'
 
 const BOARD_COLUMN_DEFS: ReadonlyArray<ColumnDef> = [
-  { id: 'todo', label: 'To Do' },
+  { id: 'todo', label: 'To Do', kind: 'default' },
   { id: 'doing', label: 'Doing' },
   { id: 'done', label: 'Done', kind: 'done' },
 ]
 
-const DEFAULT_COLUMN_ID = BOARD_COLUMN_DEFS[0].id
+const DEFAULT_COLUMN_ID = BOARD_COLUMN_DEFS.find((column) => column.kind === 'default')?.id || BOARD_COLUMN_DEFS[0].id
 
 export type MoveItemParams = {
   activeId: string
