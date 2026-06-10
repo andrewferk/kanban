@@ -15,25 +15,25 @@ import { useState } from 'react'
 import { KanbanCardContent } from '@/components/KanbanCard'
 import { KanbanColumn } from '@/components/KanbanColumn'
 import type { MoveItemParams } from '@/hooks/useKanbanBoard'
+import { findItemById, resolveDestColumn } from '@/lib/kanbanBoard'
 import { celebrateDone } from '@/lib/confetti'
-import {
-  COLUMN_IDS,
-  isColumnId,
-  type ColumnId,
-  type KanbanItem,
-} from '@/lib/types'
+import { DONE_COLUMN_ID, type BoardColumn, type KanbanItem } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 const DONE_ANIMATION_MS = 700
 
+const GRID_COLS_CLASS: Record<number, string> = {
+  1: 'lg:grid-cols-1',
+  2: 'lg:grid-cols-2',
+  3: 'lg:grid-cols-3',
+}
+
 type KanbanBoardProps = {
-  getColumnItems: (columnId: ColumnId) => KanbanItem[]
+  columns: BoardColumn[]
   moveItem: (params: MoveItemParams) => void
 }
 
-export function KanbanBoard({
-  getColumnItems,
-  moveItem,
-}: KanbanBoardProps) {
+export function KanbanBoard({ columns, moveItem }: KanbanBoardProps) {
   const [activeItem, setActiveItem] = useState<KanbanItem | null>(null)
   const [recentlyCompletedId, setRecentlyCompletedId] = useState<string | null>(
     null,
@@ -48,23 +48,8 @@ export function KanbanBoard({
     }),
   )
 
-  const resolveDestColumn = (overId: string): ColumnId | null => {
-    if (isColumnId(overId)) {
-      return overId
-    }
-    for (const columnId of COLUMN_IDS) {
-      if (getColumnItems(columnId).some((item) => item.id === overId)) {
-        return columnId
-      }
-    }
-    return null
-  }
-
   const handleDragStart = (event: DragStartEvent) => {
-    const item = COLUMN_IDS.flatMap((columnId) => getColumnItems(columnId)).find(
-      (candidate) => candidate.id === event.active.id,
-    )
-    setActiveItem(item ?? null)
+    setActiveItem(findItemById(columns, String(event.active.id)) ?? null)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -78,11 +63,14 @@ export function KanbanBoard({
 
     const activeId = String(active.id)
     const overId = String(over.id)
-    const destColumn = resolveDestColumn(overId)
+    const destColumnId = resolveDestColumn(columns, overId)
 
     moveItem({ activeId, overId })
 
-    if (dragged.columnId !== 'done' && destColumn === 'done') {
+    if (
+      dragged.columnId !== DONE_COLUMN_ID &&
+      destColumnId === DONE_COLUMN_ID
+    ) {
       celebrateDone()
       setRecentlyCompletedId(activeId)
       window.setTimeout(() => setRecentlyCompletedId(null), DONE_ANIMATION_MS)
@@ -93,6 +81,9 @@ export function KanbanBoard({
     setActiveItem(null)
   }
 
+  const gridColsClass =
+    GRID_COLS_CLASS[columns.length] ?? 'lg:grid-cols-3'
+
   return (
     <DndContext
       sensors={sensors}
@@ -101,12 +92,16 @@ export function KanbanBoard({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="grid min-h-[28rem] flex-1 gap-4 lg:grid-cols-3">
-        {COLUMN_IDS.map((columnId) => (
+      <div
+        className={cn(
+          'grid min-h-[28rem] flex-1 gap-4',
+          gridColsClass,
+        )}
+      >
+        {columns.map((column) => (
           <KanbanColumn
-            key={columnId}
-            columnId={columnId}
-            items={getColumnItems(columnId)}
+            key={column.id}
+            column={column}
             recentlyCompletedId={recentlyCompletedId}
           />
         ))}

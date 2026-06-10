@@ -1,6 +1,8 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
+import { deriveBoard } from '@/lib/kanbanBoard'
 import {
+  BOARD_COLUMN_DEFS,
   COLUMN_IDS,
   isColumnId,
   type Character,
@@ -134,18 +136,14 @@ export function useKanbanBoard() {
     })
   }, [])
 
-  const getColumnItems = useCallback(
-    (columnId: ColumnId): KanbanItem[] => {
-      return state.columnOrder[columnId]
-        .map((id) => state.items[id])
-        .filter((item): item is KanbanItem => item !== undefined)
-    },
+  const columns = useMemo(
+    () => deriveBoard(state.columnOrder, state.items, BOARD_COLUMN_DEFS),
     [state.columnOrder, state.items],
   )
 
   return {
     addItem,
     moveItem,
-    getColumnItems,
+    columns,
   }
 }

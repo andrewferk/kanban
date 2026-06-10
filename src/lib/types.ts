@@ -6,6 +6,18 @@ export type Character = {
   status: string
 }
 
+export const BOARD_COLUMN_DEFS = [
+  { id: 'todo', label: 'To Do' },
+  { id: 'doing', label: 'Doing' },
+  { id: 'done', label: 'Done' },
+] as const
+
+export type ColumnId = (typeof BOARD_COLUMN_DEFS)[number]['id']
+
+export const COLUMN_IDS: ColumnId[] = BOARD_COLUMN_DEFS.map((column) => column.id)
+
+export const DONE_COLUMN_ID: ColumnId = 'done'
+
 export type KanbanItem = {
   id: string
   title: string
@@ -13,13 +25,10 @@ export type KanbanItem = {
   columnId: ColumnId
 }
 
-export const COLUMN_IDS = ['todo', 'doing', 'done'] as const
-export type ColumnId = (typeof COLUMN_IDS)[number]
-
-export const COLUMN_LABELS: Record<ColumnId, string> = {
-  todo: 'To Do',
-  doing: 'Doing',
-  done: 'Done',
+export type BoardColumn = {
+  id: string
+  label: string
+  items: KanbanItem[]
 }
 
 export function isColumnId(value: string): value is ColumnId {

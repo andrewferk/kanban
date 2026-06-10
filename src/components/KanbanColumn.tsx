@@ -5,7 +5,11 @@ import {
 } from '@dnd-kit/sortable'
 
 import { KanbanCard } from '@/components/KanbanCard'
-import { COLUMN_LABELS, type ColumnId, type KanbanItem } from '@/lib/types'
+import {
+  DONE_COLUMN_ID,
+  type BoardColumn,
+  type ColumnId,
+} from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const COLUMN_STYLES: Record<
@@ -30,29 +34,27 @@ const COLUMN_STYLES: Record<
 }
 
 type KanbanColumnProps = {
-  columnId: ColumnId
-  items: KanbanItem[]
+  column: BoardColumn
   recentlyCompletedId: string | null
 }
 
 export function KanbanColumn({
-  columnId,
-  items,
+  column,
   recentlyCompletedId,
 }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: columnId })
-  const itemIds = items.map((item) => item.id)
-  const styles = COLUMN_STYLES[columnId]
+  const { setNodeRef, isOver } = useDroppable({ id: column.id })
+  const itemIds = column.items.map((item) => item.id)
+  const styles = COLUMN_STYLES[column.id as ColumnId]
 
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <header className="mb-3 flex items-center gap-2">
         <span className={cn('size-2 rounded-full', styles.accent)} />
         <h2 className="font-heading text-sm font-semibold tracking-wide">
-          {COLUMN_LABELS[columnId]}
+          {column.label}
         </h2>
         <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {items.length}
+          {column.items.length}
         </span>
       </header>
 
@@ -64,14 +66,14 @@ export function KanbanColumn({
             isOver ? styles.dropzoneOver : styles.dropzone,
           )}
         >
-          {items.length === 0 ? (
+          {column.items.length === 0 ? (
             <p className="m-auto px-4 text-center text-sm text-muted-foreground">
-              {columnId === 'done'
+              {column.id === DONE_COLUMN_ID
                 ? 'Complete a task to see confetti'
                 : 'Drop items here'}
             </p>
           ) : (
-            items.map((item) => (
+            column.items.map((item) => (
               <KanbanCard
                 key={item.id}
                 item={item}
