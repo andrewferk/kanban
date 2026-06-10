@@ -25,29 +25,17 @@ export function findItemById(
   columns: BoardColumn[],
   itemId: string,
 ): KanbanItem | undefined {
-  for (const column of columns) {
-    const item = column.items.find((candidate) => candidate.id === itemId)
-    if (item) {
-      return item
-    }
-  }
-  return undefined
+  return columns.flatMap((column) => column.items).find((item) => item.id === itemId)
 }
 
 export function resolveDestColumn(
   columns: BoardColumn[],
   overId: string,
-): string | null {
-  const directColumn = columns.find((column) => column.id === overId)
-  if (directColumn) {
-    return directColumn.id
+): string | undefined {
+  const directColumnId = columns.find((column) => column.id === overId)?.id
+  if (directColumnId) {
+    return directColumnId
   }
 
-  for (const column of columns) {
-    if (column.items.some((item) => item.id === overId)) {
-      return column.id
-    }
-  }
-
-  return null
+  return columns.flatMap((column) => column.items).find((item) => item.id === overId)?.columnId
 }

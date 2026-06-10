@@ -18,15 +18,8 @@ import type { MoveItemParams } from '@/hooks/useKanbanBoard'
 import { findItemById, resolveDestColumn } from '@/lib/kanbanBoard'
 import { celebrateDone } from '@/lib/confetti'
 import { DONE_COLUMN_ID, type BoardColumn, type KanbanItem } from '@/lib/types'
-import { cn } from '@/lib/utils'
 
 const DONE_ANIMATION_MS = 700
-
-const GRID_COLS_CLASS: Record<number, string> = {
-  1: 'lg:grid-cols-1',
-  2: 'lg:grid-cols-2',
-  3: 'lg:grid-cols-3',
-}
 
 type KanbanBoardProps = {
   columns: BoardColumn[]
@@ -81,9 +74,6 @@ export function KanbanBoard({ columns, moveItem }: KanbanBoardProps) {
     setActiveItem(null)
   }
 
-  const gridColsClass =
-    GRID_COLS_CLASS[columns.length] ?? 'lg:grid-cols-3'
-
   return (
     <DndContext
       sensors={sensors}
@@ -93,10 +83,7 @@ export function KanbanBoard({ columns, moveItem }: KanbanBoardProps) {
       onDragCancel={handleDragCancel}
     >
       <div
-        className={cn(
-          'grid min-h-[28rem] flex-1 gap-4',
-          gridColsClass,
-        )}
+        className="grid min-h-[28rem] flex-1 gap-4 lg:grid-cols-3"
       >
         {columns.map((column) => (
           <KanbanColumn
