@@ -2,14 +2,19 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { deriveBoard } from '@/lib/kanbanBoard'
 import {
-  BOARD_COLUMN_DEFS,
-  COLUMN_IDS,
-  isColumnId,
   type Character,
-  type ColumnId,
+  type ColumnDef,
   type KanbanItem,
 } from '@/lib/types'
 import { arrayMove } from '@/lib/utils'
+
+const BOARD_COLUMN_DEFS: ReadonlyArray<ColumnDef> = [
+  { id: 'todo', label: 'To Do' },
+  { id: 'doing', label: 'Doing' },
+  { id: 'done', label: 'Done', kind: 'done' },
+]
+
+const DEFAULT_COLUMN_ID = BOARD_COLUMN_DEFS[0].id
 
 export type MoveItemParams = {
   activeId: string
@@ -21,26 +26,31 @@ type BoardState = {
   columnOrder: ColumnOrder
 }
 
-type ColumnOrder = Record<ColumnId, KanbanItem['id'][]>
+type ColumnOrder = Record<string, KanbanItem['id'][]>
 
 function createEmptyBoard(): BoardState {
   return {
     items: {},
-    columnOrder: {
-      todo: [],
-      doing: [],
-      done: [],
-    },
+    columnOrder: Object.fromEntries(
+      BOARD_COLUMN_DEFS.map(({ id }) => [id, []]),
+    ),
   }
+}
+
+function isKnownColumnId(
+  value: string,
+  columnDefs: ReadonlyArray<ColumnDef>,
+): boolean {
+  return columnDefs.some((column) => column.id === value)
 }
 
 function findColumnForItem(
   columnOrder: ColumnOrder,
   itemId: KanbanItem['id'],
-): ColumnId | null {
-  for (const columnId of COLUMN_IDS) {
-    if (columnOrder[columnId].includes(itemId)) {
-      return columnId
+): string | null {
+  for (const { id } of BOARD_COLUMN_DEFS) {
+    if (columnOrder[id]?.includes(itemId)) {
+      return id
     }
   }
   return null
@@ -55,14 +65,14 @@ export function useKanbanBoard() {
       id,
       title: title.trim(),
       character,
-      columnId: 'todo',
+      columnId: DEFAULT_COLUMN_ID,
     }
 
     setState((prev) => ({
       items: { ...prev.items, [id]: item },
       columnOrder: {
         ...prev.columnOrder,
-        todo: [...prev.columnOrder.todo, id],
+        [DEFAULT_COLUMN_ID]: [...(prev.columnOrder[DEFAULT_COLUMN_ID] ?? []), id],
       },
     }))
   }, [])
@@ -78,7 +88,7 @@ export function useKanbanBoard() {
         return prev
       }
 
-      const overColumn = isColumnId(overId)
+      const overColumn = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
         ? overId
         : findColumnForItem(prev.columnOrder, overId)
       if (!overColumn) {
@@ -86,9 +96,9 @@ export function useKanbanBoard() {
       }
 
       if (activeColumn === overColumn) {
-        const columnIds = [...prev.columnOrder[activeColumn]]
+        const columnIds = [...(prev.columnOrder[activeColumn] ?? [])]
         const activeIndex = columnIds.indexOf(activeId)
-        const overIndex = isColumnId(overId)
+        const overIndex = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
           ? columnIds.length - 1
           : columnIds.indexOf(overId)
 
@@ -105,9 +115,11 @@ export function useKanbanBoard() {
         }
       }
 
-      const sourceIds = prev.columnOrder[activeColumn].filter((id) => id !== activeId)
-      const destinationIds = [...prev.columnOrder[overColumn]]
-      const insertIndex = isColumnId(overId)
+      const sourceIds = (prev.columnOrder[activeColumn] ?? []).filter(
+        (id) => id !== activeId,
+      )
+      const destinationIds = [...(prev.columnOrder[overColumn] ?? [])]
+      const insertIndex = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
         ? destinationIds.length
         : destinationIds.indexOf(overId)
 

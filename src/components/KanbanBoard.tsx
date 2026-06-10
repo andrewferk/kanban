@@ -17,7 +17,7 @@ import { KanbanColumn } from '@/components/KanbanColumn'
 import type { MoveItemParams } from '@/hooks/useKanbanBoard'
 import { findItemById, resolveDestColumn } from '@/lib/kanbanBoard'
 import { celebrateDone } from '@/lib/confetti'
-import { DONE_COLUMN_ID, type BoardColumn, type KanbanItem } from '@/lib/types'
+import type { BoardColumn, KanbanItem } from '@/lib/types'
 
 const DONE_ANIMATION_MS = 700
 
@@ -57,12 +57,14 @@ export function KanbanBoard({ columns, moveItem }: KanbanBoardProps) {
     const activeId = String(active.id)
     const overId = String(over.id)
     const destColumnId = resolveDestColumn(columns, overId)
+    const doneColumnId = columns.find((column) => column.kind === 'done')?.id
 
     moveItem({ activeId, overId })
 
     if (
-      dragged.columnId !== DONE_COLUMN_ID &&
-      destColumnId === DONE_COLUMN_ID
+      doneColumnId &&
+      dragged.columnId !== doneColumnId &&
+      destColumnId === doneColumnId
     ) {
       celebrateDone()
       setRecentlyCompletedId(activeId)

@@ -1,21 +1,17 @@
-import type { BoardColumn, ColumnId, KanbanItem } from '@/lib/types'
+import type { BoardColumn, ColumnDef, KanbanItem } from '@/lib/types'
 
-type ColumnOrder = Record<ColumnId, KanbanItem['id'][]>
-
-type ColumnDef = {
-  id: ColumnId
-  label: string
-}
+type ColumnOrder = Record<string, KanbanItem['id'][]>
 
 export function deriveBoard(
   columnOrder: ColumnOrder,
   items: Record<KanbanItem['id'], KanbanItem>,
   columnDefs: ReadonlyArray<ColumnDef>,
 ): BoardColumn[] {
-  return columnDefs.map(({ id, label }) => ({
+  return columnDefs.map(({ id, label, kind }) => ({
     id,
     label,
-    items: columnOrder[id]
+    kind,
+    items: (columnOrder[id] ?? [])
       .map((itemId) => items[itemId])
       .filter((item): item is KanbanItem => item !== undefined),
   }))

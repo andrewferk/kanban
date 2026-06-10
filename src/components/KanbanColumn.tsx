@@ -5,15 +5,17 @@ import {
 } from '@dnd-kit/sortable'
 
 import { KanbanCard } from '@/components/KanbanCard'
-import {
-  DONE_COLUMN_ID,
-  type BoardColumn,
-  type ColumnId,
-} from '@/lib/types'
+import type { BoardColumn } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
+const DEFAULT_COLUMN_STYLE = {
+  accent: 'bg-slate-500',
+  dropzone: 'border-border bg-muted/30',
+  dropzoneOver: 'border-slate-400/50 bg-slate-500/5',
+}
+
 const COLUMN_STYLES: Record<
-  ColumnId,
+  string,
   { accent: string; dropzone: string; dropzoneOver: string }
 > = {
   todo: {
@@ -44,7 +46,8 @@ export function KanbanColumn({
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id })
   const itemIds = column.items.map((item) => item.id)
-  const styles = COLUMN_STYLES[column.id as ColumnId]
+  const styles = COLUMN_STYLES[column.id] ?? DEFAULT_COLUMN_STYLE
+  const isDoneColumn = column.kind === 'done'
 
   return (
     <section className="flex min-h-0 flex-1 flex-col">
@@ -68,7 +71,7 @@ export function KanbanColumn({
         >
           {column.items.length === 0 ? (
             <p className="m-auto px-4 text-center text-sm text-muted-foreground">
-              {column.id === DONE_COLUMN_ID
+              {isDoneColumn
                 ? 'Complete a task to see confetti'
                 : 'Drop items here'}
             </p>
@@ -77,6 +80,7 @@ export function KanbanColumn({
               <KanbanCard
                 key={item.id}
                 item={item}
+                isDone={isDoneColumn}
                 isJustCompleted={item.id === recentlyCompletedId}
               />
             ))

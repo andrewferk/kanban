@@ -12,6 +12,7 @@ type KanbanCardContentProps = {
   item: KanbanItem
   dragHandleProps?: HTMLAttributes<HTMLButtonElement>
   className?: string
+  isDone?: boolean
   isJustCompleted?: boolean
 }
 
@@ -19,9 +20,9 @@ export function KanbanCardContent({
   item,
   dragHandleProps,
   className,
+  isDone = false,
   isJustCompleted = false,
 }: KanbanCardContentProps) {
-  const isDone = item.columnId === 'done'
 
   return (
     <Card
@@ -68,10 +69,15 @@ export function KanbanCardContent({
 
 type KanbanCardProps = {
   item: KanbanItem
+  isDone?: boolean
   isJustCompleted?: boolean
 }
 
-export function KanbanCard({ item, isJustCompleted = false }: KanbanCardProps) {
+export function KanbanCard({
+  item,
+  isDone = false,
+  isJustCompleted = false,
+}: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -95,6 +101,7 @@ export function KanbanCard({ item, isJustCompleted = false }: KanbanCardProps) {
       <KanbanCardContent
         item={item}
         dragHandleProps={{ ...attributes, ...listeners }}
+        isDone={isDone}
         isJustCompleted={isJustCompleted}
         className={isDragging ? 'shadow-md' : undefined}
       />
