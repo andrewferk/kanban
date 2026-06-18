@@ -77,19 +77,36 @@ export function removeItemFromState(state: BoardState, itemId: string): BoardSta
   }
 }
 
-export function buildInverseMoveParams(
+function restoreItemPosition(
   state: BoardState,
-  action: Extract<BoardAction, { type: 'move' }>,
-): MoveItemParams {
-  const columnIds = (state.columnOrder[action.fromColumnId] ?? []).filter(
-    (id) => id !== action.itemId,
-  )
-  const overId =
-    action.fromIndex >= columnIds.length
-      ? action.fromColumnId
-      : columnIds[action.fromIndex]
+  itemId: string,
+  columnId: string,
+  index: number,
+): BoardState {
+  const currentColumn = findColumnForItem(state.columnOrder, itemId)
+  if (!currentColumn || !state.items[itemId]) {
+    return state
+  }
 
-  return { activeId: action.itemId, overId }
+  const columnOrder = { ...state.columnOrder }
+  columnOrder[currentColumn] = (columnOrder[currentColumn] ?? []).filter(
+    (id) => id !== itemId,
+  )
+
+  const targetIds = [...(columnOrder[columnId] ?? [])]
+  targetIds.splice(Math.min(index, targetIds.length), 0, itemId)
+  columnOrder[columnId] = targetIds
+
+  return {
+    items: {
+      ...state.items,
+      [itemId]: {
+        ...state.items[itemId],
+        columnId,
+      },
+    },
+    columnOrder,
+  }
 }
 
 function applyMoveItem(
@@ -167,8 +184,12 @@ function applyUndoAction(state: BoardState, action: BoardAction): BoardState {
     return removeItemFromState(state, action.itemId)
   }
 
-  const next = applyMoveItem(state, buildInverseMoveParams(state, action))
-  return next ?? state
+  return restoreItemPosition(
+    state,
+    action.itemId,
+    action.fromColumnId,
+    action.fromIndex,
+  )
 }
 
 export function useKanbanBoard() {
