@@ -1,11 +1,14 @@
+import { Undo2 } from 'lucide-react'
+
 import { AddItemForm } from '@/components/AddItemForm'
 import { KanbanBoard } from '@/components/KanbanBoard'
+import { Button } from '@/components/ui/button'
 import { useCharacters } from '@/hooks/useCharacters'
 import { useKanbanBoard } from '@/hooks/useKanbanBoard'
 
 function App() {
   const { characters, loading, error } = useCharacters()
-  const { addItem, columns, moveItem } = useKanbanBoard()
+  const { addItem, canUndo, columns, moveItem, undo } = useKanbanBoard()
 
   return (
     <div className="min-h-svh bg-[radial-gradient(ellipse_at_top,_oklch(0.97_0.03_145)_0%,_var(--background)_50%)]">
@@ -22,12 +25,23 @@ function App() {
         </header>
 
         <main className="flex flex-1 flex-col gap-6">
-          <AddItemForm
-            characters={characters}
-            loading={loading}
-            error={error}
-            onSubmit={addItem}
-          />
+          <div className="flex flex-col gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={undo}
+              disabled={!canUndo}
+            >
+              <Undo2 />
+              Undo
+            </Button>
+            <AddItemForm
+              characters={characters}
+              loading={loading}
+              error={error}
+              onSubmit={addItem}
+            />
+          </div>
           <KanbanBoard columns={columns} moveItem={moveItem} />
         </main>
       </div>
