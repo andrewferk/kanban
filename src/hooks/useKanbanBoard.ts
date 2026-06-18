@@ -21,6 +21,10 @@ export type MoveItemParams = {
   overId: string
 }
 
+type BoardAction =
+  | { type: 'add'; itemId: string }
+  | { type: 'move'; itemId: string; fromColumnId: string; fromIndex: number }
+
 type BoardState = {
   items: Record<KanbanItem['id'], KanbanItem>
   columnOrder: ColumnOrder
@@ -56,8 +60,43 @@ function findColumnForItem(
   return null
 }
 
+export function removeItemFromState(state: BoardState, itemId: string): BoardState {
+  const columnId = findColumnForItem(state.columnOrder, itemId)
+  if (!columnId) {
+    return state
+  }
+
+  const { [itemId]: _removed, ...items } = state.items
+
+  return {
+    items,
+    columnOrder: {
+      ...state.columnOrder,
+      [columnId]: (state.columnOrder[columnId] ?? []).filter((id) => id !== itemId),
+    },
+  }
+}
+
+export function buildInverseMoveParams(
+  state: BoardState,
+  action: Extract<BoardAction, { type: 'move' }>,
+): MoveItemParams {
+  const columnIds = (state.columnOrder[action.fromColumnId] ?? []).filter(
+    (id) => id !== action.itemId,
+  )
+  const overId =
+    action.fromIndex >= columnIds.length
+      ? action.fromColumnId
+      : columnIds[action.fromIndex]
+
+  return { activeId: action.itemId, overId }
+}
+
 export function useKanbanBoard() {
   const [state, setState] = useState<BoardState>(createEmptyBoard)
+  const [actionHistory, setActionHistory] = useState<BoardAction[]>([])
+  void actionHistory
+  void setActionHistory
 
   const addItem = useCallback((title: string, character: Character) => {
     const id = crypto.randomUUID()
