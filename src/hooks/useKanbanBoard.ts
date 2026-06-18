@@ -162,10 +162,18 @@ function applyMoveItem(
   }
 }
 
+function applyUndoAction(state: BoardState, action: BoardAction): BoardState {
+  if (action.type === 'add') {
+    return removeItemFromState(state, action.itemId)
+  }
+
+  const next = applyMoveItem(state, buildInverseMoveParams(state, action))
+  return next ?? state
+}
+
 export function useKanbanBoard() {
   const [state, setState] = useState<BoardState>(createEmptyBoard)
   const [actionHistory, setActionHistory] = useState<BoardAction[]>([])
-  void actionHistory
 
   const addItem = useCallback((title: string, character: Character) => {
     const id = crypto.randomUUID()
@@ -214,6 +222,18 @@ export function useKanbanBoard() {
     }
   }, [])
 
+  const undo = useCallback(() => {
+    setActionHistory((history) => {
+      if (history.length === 0) {
+        return history
+      }
+
+      const lastAction = history[history.length - 1]
+      setState((prev) => applyUndoAction(prev, lastAction))
+      return history.slice(0, -1)
+    })
+  }, [])
+
   const columns = useMemo(
     () => deriveBoard(state.columnOrder, state.items, BOARD_COLUMN_DEFS),
     [state.columnOrder, state.items],
@@ -223,5 +243,7 @@ export function useKanbanBoard() {
     addItem,
     moveItem,
     columns,
+    undo,
+    canUndo: actionHistory.length > 0,
   }
 }
