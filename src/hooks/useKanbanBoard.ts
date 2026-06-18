@@ -92,11 +92,80 @@ export function buildInverseMoveParams(
   return { activeId: action.itemId, overId }
 }
 
+function applyMoveItem(
+  prev: BoardState,
+  { activeId, overId }: MoveItemParams,
+): BoardState | null {
+  if (activeId === overId) {
+    return null
+  }
+
+  const activeColumn = findColumnForItem(prev.columnOrder, activeId)
+  if (!activeColumn) {
+    return null
+  }
+
+  const overColumn = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
+    ? overId
+    : findColumnForItem(prev.columnOrder, overId)
+  if (!overColumn) {
+    return null
+  }
+
+  if (activeColumn === overColumn) {
+    const columnIds = [...(prev.columnOrder[activeColumn] ?? [])]
+    const activeIndex = columnIds.indexOf(activeId)
+    const overIndex = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
+      ? columnIds.length - 1
+      : columnIds.indexOf(overId)
+
+    if (activeIndex === -1 || overIndex === -1) {
+      return null
+    }
+
+    return {
+      ...prev,
+      columnOrder: {
+        ...prev.columnOrder,
+        [activeColumn]: arrayMove(columnIds, activeIndex, overIndex),
+      },
+    }
+  }
+
+  const sourceIds = (prev.columnOrder[activeColumn] ?? []).filter(
+    (id) => id !== activeId,
+  )
+  const destinationIds = [...(prev.columnOrder[overColumn] ?? [])]
+  const insertIndex = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
+    ? destinationIds.length
+    : destinationIds.indexOf(overId)
+
+  destinationIds.splice(
+    insertIndex === -1 ? destinationIds.length : insertIndex,
+    0,
+    activeId,
+  )
+
+  return {
+    items: {
+      ...prev.items,
+      [activeId]: {
+        ...prev.items[activeId],
+        columnId: overColumn,
+      },
+    },
+    columnOrder: {
+      ...prev.columnOrder,
+      [activeColumn]: sourceIds,
+      [overColumn]: destinationIds,
+    },
+  }
+}
+
 export function useKanbanBoard() {
   const [state, setState] = useState<BoardState>(createEmptyBoard)
   const [actionHistory, setActionHistory] = useState<BoardAction[]>([])
   void actionHistory
-  void setActionHistory
 
   const addItem = useCallback((title: string, character: Character) => {
     const id = crypto.randomUUID()
@@ -114,77 +183,35 @@ export function useKanbanBoard() {
         [DEFAULT_COLUMN_ID]: [...(prev.columnOrder[DEFAULT_COLUMN_ID] ?? []), id],
       },
     }))
+    setActionHistory((history) => [...history, { type: 'add', itemId: id }])
   }, [])
 
   const moveItem = useCallback(({ activeId, overId }: MoveItemParams) => {
-    if (activeId === overId) {
-      return
-    }
+    let action: BoardAction | undefined
 
     setState((prev) => {
-      const activeColumn = findColumnForItem(prev.columnOrder, activeId)
-      if (!activeColumn) {
+      const fromColumnId = findColumnForItem(prev.columnOrder, activeId)
+      if (!fromColumnId) {
         return prev
       }
 
-      const overColumn = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
-        ? overId
-        : findColumnForItem(prev.columnOrder, overId)
-      if (!overColumn) {
+      const fromIndex = (prev.columnOrder[fromColumnId] ?? []).indexOf(activeId)
+      if (fromIndex === -1) {
         return prev
       }
 
-      if (activeColumn === overColumn) {
-        const columnIds = [...(prev.columnOrder[activeColumn] ?? [])]
-        const activeIndex = columnIds.indexOf(activeId)
-        const overIndex = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
-          ? columnIds.length - 1
-          : columnIds.indexOf(overId)
-
-        if (activeIndex === -1 || overIndex === -1) {
-          return prev
-        }
-
-        return {
-          ...prev,
-          columnOrder: {
-            ...prev.columnOrder,
-            [activeColumn]: arrayMove(columnIds, activeIndex, overIndex),
-          },
-        }
+      const next = applyMoveItem(prev, { activeId, overId })
+      if (!next) {
+        return prev
       }
 
-      const sourceIds = (prev.columnOrder[activeColumn] ?? []).filter(
-        (id) => id !== activeId,
-      )
-      const destinationIds = [...(prev.columnOrder[overColumn] ?? [])]
-      const insertIndex = isKnownColumnId(overId, BOARD_COLUMN_DEFS)
-        ? destinationIds.length
-        : destinationIds.indexOf(overId)
-
-      destinationIds.splice(
-        insertIndex === -1 ? destinationIds.length : insertIndex,
-        0,
-        activeId,
-      )
-
-      const nextState: BoardState = {
-        items: {
-          ...prev.items,
-          [activeId]: {
-            ...prev.items[activeId],
-            columnId: overColumn,
-          },
-        },
-        columnOrder: {
-          ...prev.columnOrder,
-          [activeColumn]: sourceIds,
-          [overColumn]: destinationIds,
-        },
-      }
-
-      return nextState
+      action = { type: 'move', itemId: activeId, fromColumnId, fromIndex }
+      return next
     })
+
+    if (action) {
+      setActionHistory((history) => [...history, action!])
+    }
   }, [])
 
   const columns = useMemo(
